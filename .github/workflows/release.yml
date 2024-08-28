@@ -13,11 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Metadata Repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Get Latest Successful CI Build
       if: ${{ github.event.inputs.ci-build-number == '' }}
-      uses: actions/github-script@0.9.0
+      uses: actions/github-script@v7
       id: get-latest-build
       with:
         script: |
@@ -31,27 +31,56 @@ jobs:
           return payload.data.workflow_runs[0].id;
 
     - name: Download Artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/github-script@v7
       with:
-        owner: 'zetaloop',
-        repo: 'desktop',
-        workflow_run_id: ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}
-        path: './tmp/'
+        script: |
+          const fs = require('fs');
+          const path = require('path');
+          const { pipeline } = require('stream');
+          const { promisify } = require('util');
+          const streamPipeline = promisify(pipeline);
+    
+          const runId = '${{ github.event.inputs.ci-build-number }}' || '${{ steps.get-latest-build.outputs.result }}';
+          const artifacts = await github.actions.listWorkflowRunArtifacts({
+            owner: 'zetaloop',
+            repo: 'desktop',
+            run_id: runId,
+          });
+    
+          fs.mkdirSync('./tmp', { recursive: true });
+    
+          for (const artifact of artifacts.data.artifacts) {
+            const download = await github.actions.downloadArtifact({
+              owner: 'zetaloop',
+              repo: 'desktop',
+              artifact_id: artifact.id,
+              archive_format: 'zip',
+            });
+    
+            const filePath = path.join('./tmp', `${artifact.name}.zip`);
+    
+            // Stream the download directly to a file
+            await streamPipeline(
+              download.data,
+              fs.createWriteStream(filePath)
+            );
+            
+            console.log(`Downloaded ${artifact.name} to ${filePath}`);
+          }
 
     - name: Run Python Script
       run: python update.py
 
     - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN  }}
+      uses: ncipollo/release-action@v1
       with:
-        tag_name: release-${{ env.DESKTOP_VERSION }}
-        release_name: Release ${{ env.DESKTOP_VERSION }}
-        body_path: './tmp/release_body.txt'
+        tag: release-${{ env.DESKTOP_VERSION }}
+        name: Release ${{ env.DESKTOP_VERSION }}
+        bodyFile: './tmp/release_body.txt'
         draft: false
         prerelease: ${{ env.IS_PRERELEASE == 'true' }}
-        files: './tmp/release/*'
+        artifacts: './tmp/release/*'
+        token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     - name: Push Metadata Changes
       run: |
