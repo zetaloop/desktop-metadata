@@ -86,7 +86,12 @@ for zip_file in glob.glob("./tmp/release/*.zip"):
 # 4. Write release body
 print("\n[UPDATE.PY] Writing release info...")
 
-RELEASE_INFO = """由 GitHub Action 自动发布"""
+RELEASE_INFO = f"""## GitHub Desktop 汉化版
+版本：{version}
+渠道：{version_type}
+
+由 GitHub Action 自动发布
+该汉化版支持自动更新，服务器为 [zetaloop/desktop-metadata](https://github.com/zetaloop/desktop-metadata)"""
 
 print(f"'''\n{RELEASE_INFO}\n'''")
 with open("./tmp/release_body.txt", "w", encoding="utf-8") as f:
