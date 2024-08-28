@@ -80,7 +80,7 @@ jobs:
       with:
         repo: 'desktop'
         tag: release-${{ env.DESKTOP_VERSION }}
-        name: Release ${{ env.DESKTOP_VERSION }}
+        name: Github Desktop ${{ env.DESKTOP_VERSION }}
         bodyFile: './tmp/release_body.txt'
         draft: false
         prerelease: ${{ env.IS_PRERELEASE == 'true' }}
@@ -94,3 +94,5 @@ jobs:
         git add ./metadata
         git commit -m "Update metadata from CI #${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}"
         git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
