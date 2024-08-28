@@ -88,11 +88,12 @@ jobs:
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
 
     - name: Push Metadata Changes
+      env:
+        TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add ./metadata
         git commit -m "Update metadata from CI #${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}"
+        git remote set-url origin https://x-access-token:${TOKEN}@github.com/zetaloop/desktop-metadata.git
         git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
