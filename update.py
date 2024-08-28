@@ -86,8 +86,7 @@ for zip_file in glob.glob("./tmp/release/*.zip"):
 # 4. Write release body
 print("\n[UPDATE.PY] Writing release info...")
 
-RELEASE_INFO = f"""## GitHub Desktop 汉化版
-版本：{version}
+RELEASE_INFO = f"""版本：{version}
 渠道：{version_type}
 
 由 GitHub Action 自动发布
