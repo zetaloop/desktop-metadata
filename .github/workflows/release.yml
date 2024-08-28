@@ -1,0 +1,62 @@
+name: Make Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      ci-build-number:
+        description: 'CI Build Number (optional)'
+        required: false
+        default: ''
+
+jobs:
+  prepare-and-release:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Metadata Repo
+      uses: actions/checkout@v3
+
+    - name: Get Latest Successful CI Build
+      if: ${{ github.event.inputs.ci-build-number == '' }}
+      uses: actions/github-script@0.9.0
+      id: get-latest-build
+      with:
+        script: |
+          const payload = await github.actions.listWorkflowRuns({
+            owner: 'zetaloop',
+            repo: 'desktop',
+            workflow_id: 'ci.yml',
+            status: 'success',
+            per_page: 1
+          });
+          return payload.data.workflow_runs[0].id;
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        owner: 'zetaloop',
+        repo: 'desktop',
+        workflow_run_id: ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}
+        path: './tmp/'
+
+    - name: Run Python Script
+      run: python update.py
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN  }}
+      with:
+        tag_name: release-${{ env.DESKTOP_VERSION }}
+        release_name: Release ${{ env.DESKTOP_VERSION }}
+        body_path: './tmp/release_body.txt'
+        draft: false
+        prerelease: ${{ env.IS_PRERELEASE == 'true' }}
+        files: './tmp/release/*'
+
+    - name: Push Metadata Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ./metadata
+        git commit -m "Update metadata from CI #${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}"
+        git push
