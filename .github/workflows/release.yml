@@ -32,6 +32,7 @@ jobs:
             core.setFailed('No successful workflow runs found');
             return;
           }
+          console.log(`Found successful run #${data.workflow_runs[0].id}`);
           core.setOutput('ci-build-id', data.workflow_runs[0].id);
 
     - name: Download Artifacts
@@ -40,23 +41,18 @@ jobs:
         script: |
           const fs = require('fs');
           const path = require('path');
-          const { pipeline } = require('stream');
           const { promisify } = require('util');
-          const streamPipeline = promisify(pipeline);
-
+          const writeFile = promisify(fs.writeFile);
           const runId = process.env.CI_BUILD_NUMBER || '${{ steps.get-latest-build.outputs.ci-build-id }}';
           if (!runId) {
             throw new Error('No CI build number provided or found.');
           }
-
           const artifacts = await github.rest.actions.listWorkflowRunArtifacts({
             owner: 'zetaloop',
             repo: 'desktop',
             run_id: runId,
           });
-
           fs.mkdirSync('./tmp', { recursive: true });
-
           for (const artifact of artifacts.data.artifacts) {
             const download = await github.rest.actions.downloadArtifact({
               owner: 'zetaloop',
@@ -64,15 +60,8 @@ jobs:
               artifact_id: artifact.id,
               archive_format: 'zip',
             });
-
             const filePath = path.join('./tmp', `${artifact.name}.zip`);
-
-            // Stream the download directly to a file
-            await streamPipeline(
-              download.data,
-              fs.createWriteStream(filePath)
-            );
-
+            await writeFile(filePath, Buffer.from(download.data));
             console.log(`Downloaded ${artifact.name} to ${filePath}`);
           }
       env:
