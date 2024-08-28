@@ -77,8 +77,8 @@ jobs:
 
     - name: Push Metadata Changes
       run: |
-        git config --local user.email "zetaloop@github.com"
-        git config --local user.name "zetaloop[bot]"
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git add ./metadata
         git commit -m "Update metadata from CI ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}"
         git push
