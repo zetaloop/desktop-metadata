@@ -80,7 +80,7 @@ jobs:
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add ./metadata
-        git commit -m "Update metadata from CI ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}"
+        git commit -m "Update metadata from CI ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.ci-build-id }}"
         git push
 
     - name: Create Release
@@ -88,7 +88,7 @@ jobs:
       with:
         repo: 'desktop'
         tag: release-${{ env.DESKTOP_VERSION }}
-        name: Github Desktop ${{ env.DESKTOP_VERSION }}
+        name: GitHub Desktop ${{ env.DESKTOP_VERSION }}
         bodyFile: './tmp/release_body.txt'
         draft: false
         prerelease: ${{ env.IS_PRERELEASE == 'true' }}
