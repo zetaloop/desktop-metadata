@@ -77,11 +77,10 @@ jobs:
 
     - name: Push Metadata Changes
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        git config --local user.email "zetaloop@github.com"
+        git config --local user.name "zetaloop[bot]"
         git add ./metadata
         git commit -m "Update metadata from CI ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.result }}"
-        git remote set-url origin https://github.com/zetaloop/desktop-metadata.git
         git push
 
     - name: Create Release
