@@ -78,6 +78,7 @@ jobs:
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
+        repo: 'desktop'
         tag: release-${{ env.DESKTOP_VERSION }}
         name: Release ${{ env.DESKTOP_VERSION }}
         bodyFile: './tmp/release_body.txt'
