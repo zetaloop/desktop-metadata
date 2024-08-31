@@ -75,14 +75,6 @@ jobs:
     - name: Run Python Script
       run: python update.py
 
-    - name: Push Metadata Changes
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add ./metadata
-        git commit -m "Update metadata from CI ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.ci-build-id }}"
-        git push
-
     - name: Create Release
       uses: ncipollo/release-action@v1
       with:
@@ -94,3 +86,11 @@ jobs:
         prerelease: ${{ env.IS_PRERELEASE == 'true' }}
         artifacts: './tmp/release/*'
         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+
+    - name: Push Metadata Changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add ./metadata
+        git commit -m "Update metadata from CI ${{ github.event.inputs.ci-build-number || steps.get-latest-build.outputs.ci-build-id }}"
+        git push
