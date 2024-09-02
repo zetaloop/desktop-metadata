@@ -86,8 +86,9 @@ for zip_file in glob.glob("./tmp/release/*.zip"):
 # 4. Write release body
 print("\n[UPDATE.PY] Writing release info...")
 
-RELEASE_INFO = f"""版本：{version}
-渠道：{version_type}
+version_esc = version.replace("-", "--")
+version_type_color = "limegreen" if version_type == "production" else "darkorange"
+RELEASE_INFO = f"""![版本：{version}](https://img.shields.io/badge/版本-{version_esc}-blue) ![渠道：{version_type}](https://img.shields.io/badge/渠道-{version_type}-{version_type_color}) ![下载量](https://img.shields.io/github/downloads/zetaloop/desktop/release-{version}/total?label=下载量&color=lightseagreen)
 
 由 GitHub Action 自动发布
 该汉化版支持自动更新，服务器为 [zetaloop/desktop-metadata](https://github.com/zetaloop/desktop-metadata)"""
